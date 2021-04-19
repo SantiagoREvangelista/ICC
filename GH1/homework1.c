@@ -9,6 +9,7 @@
 #define MAX_CATEG 10
 
 
+/* defining structure and functions */
 
 struct item
 {
@@ -38,6 +39,9 @@ percent_raise, int for_category[MAX_CATEG], float new_ratios[MAX_CATEG], int n_c
 
 void redistribute(float old_ratios[MAX_CATEG], float new_ratios[MAX_CATEG], int
 n_categ, float total_solde);
+
+
+
 
 int main() {
 
@@ -139,6 +143,8 @@ void print_list_chunk(struct item list_struct[N_PRODUCTS]){
     printf("Enter the index of the last item you want to print : ");
     scanf("%d", &topProduct);
 
+/* Checking range */
+
     if(bottomProduct<topProduct && bottomProduct>0 && bottomProduct<N_PRODUCTS){
       condition=0;
     }
@@ -160,11 +166,13 @@ void print_stats(struct item list_struct[N_PRODUCTS], int n_categ){
   float price=0;
 
   int productsCategories[n_categ];
+  /* initializing all values to 0 */
   productsCategories[0]=0;
 
   for(int h=0; h<N_PRODUCTS; h++){
-    productsCategories[list_struct[h].category]=productsCategories[list_struct[h].category]+list_struct[h].quantity;
-    price=price+list_struct[h].price*list_struct[h].quantity;
+    /* finding the category for each product and adding them to its respective place in the array productCategories. The loop also sums the price of each product */
+    productsCategories[list_struct[h].category] = productsCategories[list_struct[h].category] + list_struct[h].quantity;
+    price = price + list_struct[h].price * list_struct[h].quantity;
   }
 
   printf("Number of articles found in each category :\n");
@@ -182,10 +190,11 @@ void print_stats(struct item list_struct[N_PRODUCTS], int n_categ){
 float calculate_ratio(struct item list_struct[N_PRODUCTS], int category_id){
   float ammountCategory=0;
   float total=0;
+  /*calculating total price again for normalization*/
   for(int u=0; u<N_PRODUCTS; u++){
     total=total+list_struct[u].price*list_struct[u].quantity;
   }
-
+  /*summing all the normalized prices from the category*/
   for(int h=0; h<N_PRODUCTS; h++){
     if(list_struct[h].category==category_id){
       ammountCategory=ammountCategory+((list_struct[h].price*list_struct[h].quantity)/total);
@@ -199,11 +208,15 @@ float calculate_ratio(struct item list_struct[N_PRODUCTS], int category_id){
 void calculate_all_ratios(struct item list_struct[N_PRODUCTS], int n_categ, float ratios[MAX_CATEG]){
   float total=0;
   printf("Checking ratios by category :");
+
+  /*calling the function calculate_ratio for each category and summing all the ratios*/
+
   for(int z=0; z<n_categ; z++){
     ratios[z]=calculate_ratio(list_struct, z);
     printf(" %f |",ratios[z]);
     total=total+ratios[z];
   }
+  /*making sure total is 100%*/
   if(total==1){
     printf(", total = 1\n");
   }
@@ -215,7 +228,9 @@ void calculate_all_ratios(struct item list_struct[N_PRODUCTS], int n_categ, floa
 
 
 void print_budget_per_categ(float ratios[MAX_CATEG], int n_categ, float total_solde){
+  /*dummy variable to print in each pass of the loop*/
   float dummyRatio;
+  /*printing solde for each category*/
   for(int r=0; r<n_categ; r++){
     dummyRatio=total_solde*ratios[r];
     printf("Next time you should spend : %f CHF for category %d\n", dummyRatio, r);
@@ -227,22 +242,23 @@ void print_budget_per_categ(float ratios[MAX_CATEG], int n_categ, float total_so
 float calculate_excess_after_rising(float old_ratios[MAX_CATEG], float
 percent_raise, int for_category[MAX_CATEG], float new_ratios[MAX_CATEG], int
 n_categ, int n_changed, float total_solde){
-  
+ /*printablePercent is created only for printing*/ 
   float printablePercent=percent_raise*100;
+ /*newTot is the normalization constant for the new ratios*/
   float newTot=1;
   float excess;
-
+ /*turning all values of the arrat new_ratios to assure good functioning of the function. this prevents errors from an input array with initialized values*/
   for(int t=0; t<n_categ; t++){
     new_ratios[t]=0;
   }
 
   printf("Considering now that the prices of category ");
-
+ /*computing normalization constant for new ratios*/
   for(int y=0; y<n_changed; y++){
     newTot=newTot+(old_ratios[for_category[y]]*percent_raise);
   }
 
-
+/*computing the values of the array new_ratios at the positions of the changed categories (all the rest stay 0)*/
   for(int e=0; e<n_changed; e++){
     new_ratios[for_category[e]]=old_ratios[for_category[e]]*(1+percent_raise)/newTot;
     printf("%d ",for_category[e]);
@@ -250,12 +266,14 @@ n_categ, int n_changed, float total_solde){
 
   printf("have been raised by %f%%\n", printablePercent);
 
+/*computing the other ratios (notice we ask for new_ratios values to be zero beacause those are the ones untouched from the loop just above)*/
   for(int b=0; b<n_categ; b++){
     if (new_ratios[b]==0){
       new_ratios[b]=old_ratios[b]/newTot;
     } 
   }
 
+/*computing excess*/
   excess=(total_solde*newTot)-total_solde;
 
   printf("You are exceeding your solde by %f CHF\n",excess);
@@ -267,10 +285,12 @@ n_categ, int n_changed, float total_solde){
 void redistribute(float old_ratios[MAX_CATEG], float new_ratios[MAX_CATEG], int
 n_categ, float total_solde){
 
+  /*dummy variable for printing in the loop*/
   float dummyExcess;
 
   printf("Conserving a total cash-bill of %f\n", total_solde);
-
+  
+  /*computing excesses or shorting in the categories*/
   for(int c=0; c<n_categ; c++){
     dummyExcess=(new_ratios[c]-old_ratios[c])*total_solde;
     printf("Because of the raise you should add %f from category %d expenses\n",dummyExcess,c);
