@@ -94,31 +94,13 @@ list_struct[N_PRODUCTS]){
 
 
 int find_categories(struct item list_struct[N_PRODUCTS]){
-  int numberCategories=1;
-  int dummyArray[N_PRODUCTS];
-  int temp;
-
-/*creating a dummy array to be able to modify it without affecting original array*/
-
-  for(int i=0; i<N_PRODUCTS; i++){
-    dummyArray[i]=list_struct[i].category;
+  int numberCategories;
+  
+  for(int l=1; l<N_PRODUCTS; l++){
+    if(list_struct[l].category>list_struct[l-1].category){
+      numberCategories=1+list_struct[l].category;
+    } 
   }
-
-/*sorting dummy array*/
-
-  for(int l=0;l<N_PRODUCTS;l++){
-    for(int k=l+1;k<N_PRODUCTS;k++){
-      if(dummyArray[l]>dummyArray[k]){
-        temp=dummyArray[l];
-        dummyArray[l]=dummyArray[k];
-        dummyArray[k]=temp;
-      }
-    }
-  }
-
-/*checking for different categories*/
-
-  numberCategories=dummyArray[N_PRODUCTS-1]+1;
 
   if(numberCategories>MAX_CATEG){
     printf("Error: too many categories!");
