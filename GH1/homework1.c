@@ -46,7 +46,7 @@ n_categ, float total_solde);
 int main() {
 
   float budget=100;
-  float r=0.1;
+  float r=10;
 
   char list[N_PRODUCTS][N_VALUES][MAX_CHAR];
 
@@ -138,7 +138,7 @@ void print_list_chunk(struct item list_struct[N_PRODUCTS]){
   printf("This is an extract of the grocery list from item-%d to item-%d\n", bottomProduct, topProduct);
   
   for(int p=bottomProduct; p<=topProduct; p++){
-    printf("Item No %d:\n- Category: %d\n- Name: %s\n- Quantity: %d\n- Unitary Price: %f\n---------------\n", p,list_struct[p].category,list_struct[p].name,list_struct[p].quantity,list_struct[p].price);
+    printf("Item No %d:\n- Category: %d\n- Name: %s\n- Quantity: %d\n- Unitary Price: %.2f\n---------------\n", p,list_struct[p].category,list_struct[p].name,list_struct[p].quantity,list_struct[p].price);
   }
 }
 
@@ -163,7 +163,7 @@ void print_stats(struct item list_struct[N_PRODUCTS], int n_categ){
     printf("%d articles found in category %d\n", productsCategories[j], j);
   }
 
-  printf("For a total price of : %f\n", price);
+  printf("For a total price of : %.2f\n", price);
 
 }
 
@@ -195,7 +195,7 @@ void calculate_all_ratios(struct item list_struct[N_PRODUCTS], int n_categ, floa
 
   for(int z=0; z<n_categ; z++){
     ratios[z]=calculate_ratio(list_struct, z);
-    printf(" %f |",ratios[z]);
+    printf(" %.2f |",ratios[z]);
     total=total+ratios[z];
   }
   /*making sure total is 100%*/
@@ -215,7 +215,7 @@ void print_budget_per_categ(float ratios[MAX_CATEG], int n_categ, float total_so
   /*printing solde for each category*/
   for(int r=0; r<n_categ; r++){
     dummyRatio=total_solde*ratios[r];
-    printf("Next time you should spend : %f CHF for category %d\n", dummyRatio, r);
+    printf("Next time you should spend : %.2f CHF for category %d\n", dummyRatio, r);
   }
 }
 
@@ -225,7 +225,7 @@ float calculate_excess_after_rising(float old_ratios[MAX_CATEG], float
 percent_raise, int for_category[MAX_CATEG], float new_ratios[MAX_CATEG], int
 n_categ, int n_changed, float total_solde){
  /*printablePercent is created only for printing*/ 
-  float printablePercent=percent_raise*100;
+  float percentRaiseNorm=percent_raise/100;
  /*newTot is the normalization constant for the new ratios*/
   float newTot=1;
   float excess;
@@ -237,16 +237,16 @@ n_categ, int n_changed, float total_solde){
   printf("Considering now that the prices of category ");
  /*computing normalization constant for new ratios*/
   for(int y=0; y<n_changed; y++){
-    newTot=newTot+(old_ratios[for_category[y]]*percent_raise);
+    newTot=newTot+(old_ratios[for_category[y]]*percentRaiseNorm);
   }
 
 /*computing the values of the array new_ratios at the positions of the changed categories (all the rest stay 0)*/
   for(int e=0; e<n_changed; e++){
-    new_ratios[for_category[e]]=old_ratios[for_category[e]]*(1+percent_raise)/newTot;
+    new_ratios[for_category[e]]=old_ratios[for_category[e]]*(1+percentRaiseNorm)/newTot;
     printf("%d ",for_category[e]);
   }
 
-  printf("have been raised by %f%%\n", printablePercent);
+  printf("have been raised by %.2f%%\n", percent_raise);
 
 /*computing the other ratios (notice we ask for new_ratios values to be zero beacause those are the ones untouched from the loop just above)*/
   for(int b=0; b<n_categ; b++){
@@ -258,7 +258,7 @@ n_categ, int n_changed, float total_solde){
 /*computing excess*/
   excess=(total_solde*newTot)-total_solde;
 
-  printf("You are exceeding your solde by %f CHF\n",excess);
+  printf("You are exceeding your solde by %.2f CHF\n",excess);
   return excess;
 }
 
@@ -270,11 +270,17 @@ n_categ, float total_solde){
   /*dummy variable for printing in the loop*/
   float dummyExcess;
 
-  printf("Conserving a total cash-bill of %f\n", total_solde);
+  printf("Conserving a total cash-bill of %.2f\n", total_solde);
   
   /*computing excesses or shorting in the categories*/
   for(int c=0; c<n_categ; c++){
     dummyExcess=(new_ratios[c]-old_ratios[c])*total_solde;
-    printf("Because of the raise you should add %f from category %d expenses\n",dummyExcess,c);
+      if(dummyExcess>0){
+        printf("Because of the raise you should add %.2f from category %d expenses\n",dummyExcess,c);
+      }
+      else{
+        printf("Because of the raise you should remove %.2f from category %d expenses\n",-dummyExcess,c);
+      }
+
   }
 }
