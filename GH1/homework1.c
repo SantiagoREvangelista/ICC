@@ -46,7 +46,7 @@ n_categ, float total_solde);
 int main() {
 
   float budget=100;
-  float r=10;
+  float raise=10;
 
   char list[N_PRODUCTS][N_VALUES][MAX_CHAR];
 
@@ -61,19 +61,19 @@ int main() {
 
   process_list(list, list_items);
 
-  int g=find_categories(list_items);
+  int ammountCategories=find_categories(list_items);
 
   print_list_chunk(list_items);
 
-  print_stats(list_items,g);
+  print_stats(list_items,ammountCategories);
 
-  calculate_all_ratios(list_items, g, ratios);
+  calculate_all_ratios(list_items, ammountCategories, ratios);
 
-  print_budget_per_categ(ratios, g, budget);
+  print_budget_per_categ(ratios, ammountCategories, budget);
 
-  calculate_excess_after_rising(ratios, r, for_category, new_ratios, g, 2, 100);
+  calculate_excess_after_rising(ratios, raise, for_category, new_ratios, ammountCategories, 2, 100);
 
-  redistribute(ratios, new_ratios, g, budget);
+  redistribute(ratios, new_ratios, ammountCategories, budget);
 
   return 0;
 
@@ -127,11 +127,11 @@ void print_list_chunk(struct item list_struct[N_PRODUCTS]){
 
 /* Checking range */
 
-    if(bottomProduct<topProduct && bottomProduct>0 && bottomProduct<N_PRODUCTS){
+    if(bottomProduct<=topProduct && bottomProduct>0 && topProduct<N_PRODUCTS){
       condition=0;
     }
     else{
-      printf("Invalid Range !");
+      printf("Invalid Range !\n");
     }
   }
 
@@ -152,9 +152,15 @@ void print_stats(struct item list_struct[N_PRODUCTS], int n_categ){
   productsCategories[0]=0;
 
   for(int h=0; h<N_PRODUCTS; h++){
+    
+    if(list_struct[h].category>n_categ || list_struct[h].category<0){
+      printf("A category is missing or has not been properly set !");
+      return;
+    }
+
     /* finding the category for each product and adding them to its respective place in the array productCategories. The loop also sums the price of each product */
     productsCategories[list_struct[h].category] = productsCategories[list_struct[h].category] + list_struct[h].quantity;
-    price = price + list_struct[h].price * list_struct[h].quantity;
+    price += list_struct[h].price * list_struct[h].quantity;
   }
 
   printf("Number of articles found in each category :\n");
@@ -174,12 +180,12 @@ float calculate_ratio(struct item list_struct[N_PRODUCTS], int category_id){
   float total=0;
   /*calculating total price again for normalization*/
   for(int u=0; u<N_PRODUCTS; u++){
-    total=total+list_struct[u].price*list_struct[u].quantity;
+    total+=list_struct[u].price*list_struct[u].quantity;
   }
   /*summing all the normalized prices from the category*/
   for(int h=0; h<N_PRODUCTS; h++){
     if(list_struct[h].category==category_id){
-      ammountCategory=ammountCategory+((list_struct[h].price*list_struct[h].quantity)/total);
+      ammountCategory+=((list_struct[h].price*list_struct[h].quantity)/total);
     }
   }
   return ammountCategory;
@@ -224,7 +230,7 @@ void print_budget_per_categ(float ratios[MAX_CATEG], int n_categ, float total_so
 float calculate_excess_after_rising(float old_ratios[MAX_CATEG], float
 percent_raise, int for_category[MAX_CATEG], float new_ratios[MAX_CATEG], int
 n_categ, int n_changed, float total_solde){
- /*printablePercent is created only for printing*/ 
+ /*turning percent raise into a decimal number for simplicity of calculation*/ 
   float percentRaiseNorm=percent_raise/100;
  /*newTot is the normalization constant for the new ratios*/
   float newTot=1;
@@ -274,7 +280,8 @@ n_categ, float total_solde){
   
   /*computing excesses or shorting in the categories*/
   for(int c=0; c<n_categ; c++){
-    dummyExcess=(new_ratios[c]-old_ratios[c])*total_solde;
+    dummyExcess=(old_ratios[c]-new_ratios[c])*total_solde;
+
       if(dummyExcess>0){
         printf("Because of the raise you should add %.2f from category %d expenses\n",dummyExcess,c);
       }
