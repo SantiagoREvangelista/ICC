@@ -107,7 +107,6 @@ unsigned short is_valid_path_iter(const struct Path *p){
                 printf("Error: path goes from a station to itself\n");
                 return 0;
             }
-            return 1;
         }
         else{
             if (p->stationSeq[i].type==p->stationSeq[i-1].type && p->stationSeq[i].line_nb==p->stationSeq[i-1].line_nb){
@@ -115,7 +114,6 @@ unsigned short is_valid_path_iter(const struct Path *p){
                     printf("Error: stations are not consecutive\n");
                     return 0;
                 }
-                return 1;
             }
             else{
                 printf("Error: stations are not consecutive\n");
@@ -123,6 +121,7 @@ unsigned short is_valid_path_iter(const struct Path *p){
             }
         }
     }
+    return 1;
 }
 
 unsigned short is_valid_path_rec(const struct Path
