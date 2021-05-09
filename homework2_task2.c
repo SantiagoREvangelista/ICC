@@ -32,11 +32,17 @@ unsigned short is_network_valid_iter(const struct Network
 
 unsigned short is_valid_station(const struct Station *s);
 
+void swap(int * p1, int * p2);
+
 unsigned short find_cheapest_line(const struct Network
 *n);
 
 int main(){
 
+    struct Network n;
+    n=build_small_network();
+
+    printf("%d", find_cheapest_line(&n));
 
 
     return 0;
@@ -47,6 +53,7 @@ int main(){
 
 struct Network build_small_network(){
     struct Network dummyNetwork;
+
     dummyNetwork.network_size=12;
     int dummyAdjMatrix[MAX_NETWORK][MAX_NETWORK]={
         {$,11,6,$,$,$,$,$,$,$,$,$},
@@ -68,6 +75,7 @@ struct Network build_small_network(){
         }
     }
 
+
     dummyNetwork.station[0]=(struct Station){'m',1,10};
     dummyNetwork.station[1]=(struct Station){'m',2,10};
     dummyNetwork.station[2]=(struct Station){'m',1,11};
@@ -85,25 +93,32 @@ struct Network build_small_network(){
 }
 
 
+void swap(int * p1, int * p2){
+int temp = *p1;
+*p1 = *p2;
+*p2 = temp;
+}
+
+
 unsigned short is_valid_station(const struct Station *s){
     if (s->type=='m'){
         if (s->line_nb>2 || s->line_nb==0){
             printf("%d is not a valid metro station.\n", s->id);
-            return 1;
+            return 0;
         }
-        return 0;
+        return 1;
     }
     else if (s->type=='b'){
-        if (s->line_nb>99){
+        if (s->line_nb>150){
             printf("%d is not a valid bus station.\n", s->id);
-            return 1;
+            return 0;
             }
-        return 0;
+        return 1;
         }
 
     else{
         printf("This station (%d) is neither a bus nor a metro station. This station is invalid.\n",s->id);
-        return 1;
+        return 0;
     }
 }
 
@@ -150,43 +165,82 @@ unsigned short is_network_valid_iter(const struct Network
 unsigned short find_cheapest_line(const struct Network
 *n){
 
-    int cheapestLineIndex=0;
-    int costLines[n->network_size];
-    int normConst[n->network_size];
+    struct lineType{
+        char type;
+        int line_nb;
+    };
 
-    costLines[0]=0;
-    normConst[0]=0;
+    int dummyArray[n->network_size];
+    
+    for(int o=0; o<n->network_size;o++){
+        dummyArray[0]=n->station[o].line_nb;
+    }
+    
+    int difLines=n->network_size;
 
-    if(is_network_valid_iter(&n)){
+    for (int q=0; q<n->network_size; q++){
+        for (int f = 0; f < q; f++){
+            if (dummyArray[q]==dummyArray[f]){
+                dummyArray[f]= -1;
+                difLines--;
+            }
+        }    
+    }
+
+    struct lineType linesArray[difLines];
+
+    int a=0;
+
+    for (int y = 0; y < n->network_size; y++){
+        if (dummyArray[y]!=-1){
+           linesArray[a].type = n->station[y].type;
+           linesArray[a].line_nb = n->station[y].line_nb; 
+           a++; 
+        }
+    }
+
+    float prices[a];
+    int normConst[a];
+
+    for (int t = 0; t < a; t++)
+    {
+        normConst[t]=1;
+    }
+    
+
+
+    for ( int b = 0; b < a; b++){
+
         for (int g=0; g<n->network_size; g++){
+
             for (int h=0; h<n->network_size; h++){
-                if (n->adj_matrix[g][h]!=$){
-                    costLines[g]+=n->adj_matrix[g][h];
-                    normConst[g]++;
+
+                if (n->adj_matrix[g][h]!=$ && n->station[g].line_nb==linesArray[b].line_nb && n->station[g].type==linesArray[b].type){
+
+                    prices[b]+=n->adj_matrix[g][h];
+                    normConst[b]++;
                 }
             }   
         }
     }
-    else{
-        return USHRT_MAX;
+
+    for (int j = 0; j < a; j++)
+    {
+        prices[j]=prices[j]/normConst[j];
     }
 
-    for (int q=0; q<n->network_size; q++){
-        costLines[q]=costLines[q]/normConst[q];
+    int indexMin;
+
+    for (int z = 1; z < a; z++){
+        if (prices[z]<prices[a]){
+            indexMin=z;
+        }  
     }
     
-
-    for (int t=1; t<n->network_size; t++){
-        if (costLines[t]<costLines[t-1]){
-            cheapestLineIndex=t;
-        }
-    }
-
-    if (n->station[cheapestLineIndex].type=='m'){
-        return n->station[cheapestLineIndex].line_nb+99;
+    if ( linesArray[indexMin].type=='m'){
+        return linesArray[indexMin].line_nb+99;
     }
     else{
-        return n->station[cheapestLineIndex].line_nb;
+        return linesArray[indexMin].line_nb;
     }
-    
 }
